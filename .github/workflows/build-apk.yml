@@ -1,3 +1,28 @@
+name: Build Soda Helper APK
+
+'on':
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Unpack source
+        run: unzip -q SodaHelper_v0.1_source.zip
       - name: Fix Java version
         working-directory: SodaHelper
         run: |
@@ -10,7 +35,11 @@
               }
           }
           EOF
-
       - name: Build APK
         working-directory: SodaHelper
         run: gradle --no-daemon assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SodaHelper-debug-apk
+          path: SodaHelper/app/build/outputs/apk/debug/*.apk
