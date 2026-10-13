@@ -9,37 +9,66 @@ name: Build Soda Helper APK
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+
       - name: Unpack source
-        run: unzip -q SodaHelper_v0.1_source.zip
-      - name: Fix Java version
+        run: unzip -oq SodaHelper_v0.1_source.zip
+
+      - name: Fix Java and Kotlin versions
         working-directory: SodaHelper
         run: |
-          cat >> app/build.gradle <<'EOF'
+          cat > app/build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
 
           android {
+              namespace = "com.siroa.soda"
+              compileSdk = 35
+
+              defaultConfig {
+                  applicationId = "com.siroa.soda"
+                  minSdk = 26
+                  targetSdk = 35
+                  versionCode = 1
+                  versionName = "0.1"
+              }
+
               compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_17
-                  targetCompatibility JavaVersion.VERSION_17
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
               }
           }
+
+          kotlin {
+              jvmToolchain(17)
+          }
           EOF
+
       - name: Build APK
         working-directory: SodaHelper
         run: gradle --no-daemon assembleDebug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SodaHelper-debug-apk
           path: SodaHelper/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
