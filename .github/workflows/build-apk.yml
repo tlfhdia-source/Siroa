@@ -28,7 +28,7 @@ jobs:
           gradle-version: '8.9'
 
       - name: Unpack source
-        run: unzip -oq SodaHelper_v0.4_source.zip
+        run: unzip -oq SodaHelper_v0.5_source.zip
 
       - name: Fix Java and Kotlin versions
         working-directory: SodaHelper
